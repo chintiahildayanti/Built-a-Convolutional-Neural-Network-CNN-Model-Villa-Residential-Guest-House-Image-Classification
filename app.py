@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 # Load model
-model = load_model("model_cnn.h5")
+model = load_model("model_cnn.keras")
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Mapping label (ganti sesuai urutan indeks dari train_generator.class_indices)

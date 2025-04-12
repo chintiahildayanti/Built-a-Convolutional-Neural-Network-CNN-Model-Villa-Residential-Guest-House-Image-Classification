@@ -100,4 +100,4 @@ history = model.fit(
 history
 
 # Simpan model
-model.save("model_cnn.h5")
+model.save("model_cnn.keras")
