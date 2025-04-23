@@ -27,7 +27,7 @@ def predict_image(x):
     return model(x, training=False)
 
 # Judul aplikasi
-st.title(" Property Image Classification")
+st.title("Bukit Vista Property Classifier")
 
 # Upload gambar
 uploaded_file = st.file_uploader("Upload property image", type=["jpg", "png", "jpeg"])
