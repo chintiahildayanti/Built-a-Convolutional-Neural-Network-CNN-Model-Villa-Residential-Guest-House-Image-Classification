@@ -1,66 +1,68 @@
-from PIL import Image
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
-import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, Dropout
-from tensorflow.keras.models import load_model
-import random
-from tensorflow.keras.optimizers import Adam
+# Import library yang dibutuhkan
+from PIL import Image    # Untuk manipulasi gambar
+import os        # Untuk interaksi dengan sistem file
+import numpy as np    # Untuk operasi numerik
+import matplotlib.pyplot as plt        # Untuk visualisasi grafik
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay    # Evaluasi model
+import tensorflow as tf    # Untuk membangun dan melatih model deep learning
+from tensorflow.keras.preprocessing.image import ImageDataGenerator    # Untuk augmentasi dan preprocessing gambar
+from tensorflow.keras.models import Sequential    # Untuk membuat model CNN
+from tensorflow.keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, Dropout    # Layer-layer CNN (arsitektur model)
+from tensorflow.keras.models import load_model    # Untuk memuat model CNN
+import random    # Untuk mengatur seed random
+from tensorflow.keras.optimizers import Adam    # Optimizer
 
-# Dataset path
+# Path ke folder dataset
 dataset_dir = r"C:\Users\IqbalKaldera\OneDrive\Documents\Dibimbing\bukit_vista_images"
 
+# Fungsi untuk menetapkan seed agar eksperimen dapat direproduksi (hasil konsisten)
 def set_seed(seed=42):
     tf.random.set_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
 
-set_seed(42)
+set_seed(42)    # Set seed ke 42
 
-seed_value = 42
+seed_value = 42    # Seed value yang konsisten untuk ImageDataGenerator
 
-# Data augmentation dan preprocessing
+# Preprocessing dan augmentasi data
 datagen = ImageDataGenerator(
-    rescale=1./255,
-    validation_split=0.2,
-    rotation_range=20,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    shear_range=0.2,
-    zoom_range=0.2,
-    horizontal_flip=True,
-    fill_mode='nearest'
+    rescale=1./255,        # Normalisasi piksel ke range [0, 1]
+    validation_split=0.2,    # 20% data untuk validasi
+    rotation_range=20,        # Rotasi acak gambar
+    width_shift_range=0.2,    # Pergeseran lebar secara acak
+    height_shift_range=0.2,    # Pergeseran tinggi secara acak
+    shear_range=0.2,        # Transformasi shear
+    zoom_range=0.2,    # Zoom gambar secara acak
+    horizontal_flip=True,    # Balik horizontal
+    fill_mode='nearest'    # Mode pengisian piksel kosong
 )
 
-# Data generator
+# Generator untuk data training
 train_generator = datagen.flow_from_directory(
     dataset_dir,
-    target_size=(224, 224),
-    batch_size=16,
-    class_mode='categorical',
-    subset='training',
-    seed=seed_value,
-    shuffle=True
+    target_size=(224, 224),    # Ukuran input gambar
+    batch_size=16,        # Jumlah gambar per batch
+    class_mode='categorical',    # Output berupa one-hot vector
+    subset='training',    # Ambil bagian training
+    seed=seed_value,    # Seed agar shuffle konsisten
+    shuffle=True    # Acak data
 )
 
 validation_generator = datagen.flow_from_directory(
     dataset_dir,
-    target_size=(224, 224),
-    batch_size=16,
-    class_mode='categorical',
-    subset='validation',
-    seed=seed_value,
-    shuffle=False
+    target_size=(224, 224),    # Ukuran input gambar
+    batch_size=16,                # Jumlah gambar per batch
+    class_mode='categorical',    # Output berupa one-hot vector
+    subset='validation',        # Ambil bagian validasi
+    seed=seed_value,        # Seed agar shuffle konsisten
+    shuffle=False        # Tidak diacak (dibutuhkan untuk evaluasi)
 )
 
-# CNN Model
+# Definisi arsitektur model CNN
 model = Sequential([
-    Conv2D(16, (3, 3), activation='relu', input_shape=(224, 224, 3)),
+    Conv2D(16, (3, 3), activation='relu', input_shape=(224, 224, 3)),    # Layer konvolusi pertama dengan 16 filter berukuran 3x3, Aktivasi ReLU digunakan untuk menambahkan non-linearitas, input_shape adalah gambar RGB berukuran 224x224 piksel.
     AveragePooling2D(2, 2),
     Conv2D(32, (3, 3), activation='relu'),
     AveragePooling2D(2, 2),
