@@ -63,52 +63,53 @@ validation_generator = datagen.flow_from_directory(
 # Definisi arsitektur model CNN
 model = Sequential([
     Conv2D(16, (3, 3), activation='relu', input_shape=(224, 224, 3)),    # Layer konvolusi pertama dengan 16 filter berukuran 3x3, Aktivasi ReLU digunakan untuk menambahkan non-linearitas, input_shape adalah gambar RGB berukuran 224x224 piksel.
+    AveragePooling2D(2, 2),    # Layer pooling dengan ukuran pool 2x2 , tujuannya untuk mengurangi dimensi spasial (downsampling) dan ekstraksi fitur dominan
+    Conv2D(32, (3, 3), activation='relu'),    # Layer konvolusi kedua dengan 32 filter berukuran 3x3, Meningkatkan jumlah filter agar model dapat belajar fitur yang lebih kompleks
+    AveragePooling2D(2, 2),        # Pooling untuk mengurangi dimensi dari output layer sebelumnya
+    Conv2D(64, (3, 3), activation='relu'),    # Layer konvolusi ketiga dengan 64 filter
+    AveragePooling2D(2, 2),    # Pooling lagi untuk mengecilkan dimensi dan mengurangi beban komputasi
+    Conv2D(128, (3, 3), activation='relu'),    # Layer konvolusi keempat dengan 128 filter
     AveragePooling2D(2, 2),
-    Conv2D(32, (3, 3), activation='relu'),
+    Conv2D(256, (3, 3), activation='relu'),    # Layer konvolusi kelima dengan 256 filter
     AveragePooling2D(2, 2),
-    Conv2D(64, (3, 3), activation='relu'),
-    AveragePooling2D(2, 2),
-    Conv2D(128, (3, 3), activation='relu'),
-    AveragePooling2D(2, 2),
-    Conv2D(256, (3, 3), activation='relu'),
-    AveragePooling2D(2, 2),
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dropout(0.5),
-    Dense(3, activation='softmax')
+    Flatten(),                        # Flatten layer untuk masuk ke dense
+    Dense(128, activation='relu'),    # Fully connected layer
+    Dropout(0.5),                     # Dropout untuk mencegah overfitting
+    Dense(3, activation='softmax')    # Output layer dengan 3 kelas
 ])
 
+# Kompilasi model dengan optimizer Adam dan loss categorical crossentropy
 model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
-print(model.summary())
+print(model.summary())    # Tampilkan ringkasan arsitektur model
 
-# Train model
+# Latih model menggunakan data training dan validasi
 history = model.fit(
     train_generator,
-    steps_per_epoch=len(train_generator),
+    steps_per_epoch=len(train_generator),    # Langkah per epoch sesuai jumlah batch training
     validation_data=validation_generator,
-    validation_steps=len(validation_generator),
-    epochs=30
+    validation_steps=len(validation_generator),    # Langkah validasi sesuai jumlah batch validasi
+    epochs=30    # Jumlah epoch pelatihan
 )
 
-# Simpan model
+# Simpan model hasil pelatihan ke file .keras
 model.save("model_cnn.keras")
 
 # ============================================
-# === ✨ EVALUASI PERFORMA MODEL DI SINI ✨ ===
+# === EVALUASI PERFORMA MODEL DI SINI ===
 # ============================================
 
-# Evaluasi akurasi dan loss di validation set
+# Evaluasi akurasi dan loss pada data validasi
 val_loss, val_acc = model.evaluate(validation_generator)
 print(f"Validation Loss: {val_loss:.4f}")
 print(f"Validation Accuracy: {val_acc:.4f}")
 
-# Plot Accuracy & Loss
+# Visualisasi akurasi dan loss selama pelatihan
 plt.figure(figsize=(12, 5))
 
-# Accuracy
+# Plot akurasi
 plt.subplot(1, 2, 1)
 plt.plot(history.history['accuracy'], label='Train Accuracy', marker='o')
 plt.plot(history.history['val_accuracy'], label='Val Accuracy', marker='o')
@@ -117,7 +118,7 @@ plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend()
 
-# Loss
+# Plot loss
 plt.subplot(1, 2, 2)
 plt.plot(history.history['loss'], label='Train Loss', marker='o')
 plt.plot(history.history['val_loss'], label='Val Loss', marker='o')
@@ -130,15 +131,15 @@ plt.tight_layout()
 plt.show()
 
 # Prediksi untuk Confusion Matrix dan Classification Report
-y_true = validation_generator.classes
-y_pred_probs = model.predict(validation_generator)
-y_pred = np.argmax(y_pred_probs, axis=1)
+y_true = validation_generator.classes                # Label sebenarnya
+y_pred_probs = model.predict(validation_generator)    # Probabilitas hasil prediksi
+y_pred = np.argmax(y_pred_probs, axis=1)                # Ambil label dengan probabilitas tertinggi
 
 # Confusion Matrix
-class_labels = list(validation_generator.class_indices.keys())
-cm = confusion_matrix(y_true, y_pred)
+class_labels = list(validation_generator.class_indices.keys())    # Label kelas dalam urutan indeks
+cm = confusion_matrix(y_true, y_pred)        # Hitung confusion matrix
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_labels)
-disp.plot(cmap='Blues')
+disp.plot(cmap='Blues')        # Tampilkan confusion matrix dengan colormap biru
 plt.title("Confusion Matrix")
 plt.show()
 
